@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DonutGamble</title>
+
+<style>
+  :root{
+    --bg0:#0b0f14;
+    --bg1:#0e141b;
+    --panel:#101823;
+    --card:#0f1722;
+    --card2:#111b28;
+    --text:#e7edf5;
+    --muted:rgba(231,237,245,.68);
+    --muted2:rgba(231,237,245,.52);
+    --line:rgba(231,237,245,.10);
+    --line2:rgba(231,237,245,.14);
+
+    --green:#00e701;
+    --green2:#00c853;
+    --red:#ff3b30;
+    --amber:#f5c542;
+    --blue:#3b82f6;
+
+    --shadow: 0 16px 40px rgba(0,0,0,.45);
+    --shadow2: 0 22px 70px rgba(0,0,0,.55);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(900px 500px at 20% 0%, rgba(0,231,1,.08), transparent 60%),
+      radial-gradient(900px 500px at 85% 10%, rgba(59,130,246,.06), transparent 60%),
+      linear-gradient(180deg, var(--bg1), var(--bg0));
+  }
+
+  /* Topbar */
+  .topbar{
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 18px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 14px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    min-width: 280px;
+  }
+  .logo-badge{
+    width: 74px;
+    height: 74px;
+    border-radius: 18px;
+    background:
+      radial-gradient(120px 120px at 30% 25%, rgba(255,255,255,.14), rgba(255,255,255,0)),
+      linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    border: 1px solid var(--line2);
+    box-shadow: var(--shadow);
+    display:grid;
+    place-items:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .logo-badge::after{
+    content:"";
+    position:absolute;
+    inset:-40%;
+    background: radial-gradient(circle at 35% 35%, rgba(0,231,1,.14), transparent 60%);
+    transform: rotate(18deg);
+    pointer-events:none;
+  }
+  .logo-svg{
+    width: 60px;
+    height: 60px;
+    filter: drop-shadow(0 10px 18px rgba(0,0,0,.55));
+    position:relative;
+    z-index:1;
+  }
+  .brand-text{ line-height:1.1; }
+  .brand-text h1{
+    margin:0;
+    font-size: 18px;
+    letter-spacing:.4px;
+    font-weight: 900;
+  }
+  .brand-text .sub{
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .rightbar{ display:flex; align-items:center; gap: 12px; }
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap: 10px;
+    border-radius: 999px;
+    padding: 10px 14px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--line);
+    box-shadow: 0 10px 22px rgba(0,0,0,.35);
+    font-weight: 900;
+    font-size: 13px;
+    white-space:nowrap;
+  }
+  .pill .dot{
+    width: 8px; height: 8px; border-radius: 99px;
+    background: var(--green);
+    box-shadow: 0 0 0 4px rgba(0,231,1,.12);
+  }
+  .pill .muted{ color: var(--muted); font-weight: 800; }
+
+  /* Casino layout */
+  .screen{
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 16px 20px 34px;
+  }
+  .casino{
+    display:grid;
+    grid-template-columns: 96px 1fr 360px;
+    gap: 18px;
+    align-items:start;
+    min-height: calc(100vh - 110px);
+  }
+  @media (max-width: 1100px){
+    .casino{
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* LEFT: vertical icon menu */
+  .left{
+    border-radius: 18px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--line);
+    box-shadow: 0 10px 26px rgba(0,0,0,.25);
+    overflow:hidden;
+  }
+  .left-head{
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(0,0,0,.18);
+    display:flex; justify-content:center; align-items:center;
+  }
+  .left-head .title{
+    font-weight: 1000;
+    letter-spacing:.6px;
+    font-size: 11px;
+    color: rgba(231,237,245,.90);
+    text-transform: uppercase;
+  }
+  .icon-list{
+    padding: 12px;
+    display:flex;
+    flex-direction:column;
+    gap: 12px;
+    align-items:center;
+  }
+
+  .game-icon{
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    border: 1px solid rgba(231,237,245,.10);
+    background:
+      radial-gradient(120px 80px at 30% 25%, rgba(255,255,255,.10), rgba(255,255,255,0)),
+      rgba(0,0,0,.22);
+    box-shadow: 0 10px 24px rgba(0,0,0,.25);
+    cursor:pointer;
+    display:grid;
+    place-items:center;
+    position:relative;
+    overflow:hidden;
+    transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, filter .16s ease;
+  }
+  .game-icon:hover{
+    transform: translateY(-2px);
+    box-shadow: var(--shadow2);
+    border-color: rgba(231,237,245,.18);
+    filter: brightness(1.05);
+  }
+  .game-icon.active{
+    border-color: rgba(0,231,1,.22);
+    box-shadow: 0 0 0 3px rgba(0,231,1,.08) inset, 0 14px 34px rgba(0,0,0,.35);
+  }
+  .game-icon::after{
+    content:"";
+    position:absolute;
+    inset:-60%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,.10), transparent);
+    transform: rotate(12deg);
+    animation: sheen 5.2s linear infinite;
+    opacity:.16;
+    pointer-events:none;
+  }
+  @keyframes sheen{
+    0%{ transform: translateX(-40%) rotate(12deg); }
+    100%{ transform: translateX(40%) rotate(12deg); }
+  }
+
+  /* icon content */
+  .gi-emoji{
+    font-size: 26px;
+    filter: drop-shadow(0 10px 18px rgba(0,0,0,.45));
+    user-select:none;
+  }
+  .gi-svg{
+    width: 40px;
+    height: 40px;
+    filter: drop-shadow(0 10px 18px rgba(0,0,0,.45));
+    user-select:none;
+  }
+
+  /* tooltip label */
+  .game-icon .tip{
+    position:absolute;
+    left: 78px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(0,0,0,.62);
+    border: 1px solid rgba(231,237,245,.12);
+    color: rgba(231,237,245,.92);
+    font-weight: 1000;
+    font-size: 12px;
+    letter-spacing:.4px;
+    white-space:nowrap;
+    opacity: 0;
+    pointer-events:none;
+    transition: opacity .14s ease, transform .14s ease;
+    box-shadow: 0 16px 40px rgba(0,0,0,.45);
+  }
+  .game-icon:hover .tip{
+    opacity: 1;
+    transform: translateY(-50%) translateX(2px);
+  }
+
+  /* CENTER: active game */
+  .center{
+    border-radius: 18px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--line);
+    box-shadow: 0 10px 26px rgba(0,0,0,.25);
+    overflow:hidden;
+  }
+  .center-head{
+    padding: 16px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(0,0,0,.18);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 12px;
+    flex-wrap:wrap;
+  }
+  .center-head .title{ font-weight: 1000; letter-spacing:.3px; font-size: 13px; }
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(0,0,0,.22);
+    border: 1px solid rgba(231,237,245,.12);
+    font-weight: 1000;
+    font-size: 12px;
+    white-space:nowrap;
+  }
+  .badge .g{ color: var(--green); }
+  .badge .r{ color: var(--red); }
+
+  .game-wrap{
+    padding: 18px;
+    display:grid;
+    grid-template-columns: 360px 1fr;
+    gap: 18px;
+    align-items:start;
+  }
+  @media (max-width: 1100px){
+    .game-wrap{ grid-template-columns: 1fr; }
+  }
+
+  /* Common panel */
+  .panel{
+    border-radius: 18px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--line);
+    box-shadow: 0 12px 30px rgba(0,0,0,.25);
+    padding: 18px;
+  }
+  .panel h3{
+    margin: 2px 0 12px;
+    font-size: 14px;
+    letter-spacing:.3px;
+    font-weight: 1000;
+  }
+  .muted{ color: var(--muted); font-size: 12px; }
+
+  /* Inputs/buttons */
+  label{ display:block; font-size: 12px; color: var(--muted); margin: 12px 0 8px; letter-spacing:.2px; }
+  input, select, button{ font: inherit; }
+  .input, select{
+    width:100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(0,0,0,.22);
+    border: 1px solid rgba(231,237,245,.10);
+    color: var(--text);
+    outline:none;
+  }
+  .btnrow{ display:flex; gap: 12px; margin-top: 14px; }
+  .btn{
+    flex:1;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(231,237,245,.12);
+    background: rgba(255,255,255,.04);
+    color: rgba(231,237,245,.92);
+    cursor:pointer;
+    font-weight: 1000;
+    transition: transform .12s ease, filter .12s ease, background .12s ease, border-color .12s ease;
+  }
+  .btn:hover{ filter: brightness(1.05); border-color: rgba(231,237,245,.18); }
+  .btn:active{ transform: translateY(1px); }
+  .btn.primary{
+    background: linear-gradient(180deg, rgba(0,231,1,.90), rgba(0,200,83,.90));
+    color: #04120a;
+    border-color: rgba(0,231,1,.20);
+  }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; pointer-events:none; }
+
+  /* Bet stepper */
+  .stepper{
+    display:flex;
+    overflow:hidden;
+    border-radius: 12px;
+    border: 1px solid rgba(231,237,245,.10);
+    background: rgba(0,0,0,.22);
+  }
+  .stepper button{
+    width: 46px;
+    border: 0;
+    background: rgba(255,255,255,.04);
+    color: rgba(231,237,245,.92);
+    cursor:pointer;
+    font-weight: 1000;
+  }
+  .stepper button:hover{ background: rgba(255,255,255,.06); }
+  .stepper input{
+    flex:1; border:0; background: transparent;
+    padding: 12px 12px; color: var(--text); outline:none; font-weight: 1000;
+  }
+  .chips{ display:flex; gap: 10px; margin-top: 12px; }
+  .chip{
+    flex:1;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(231,237,245,.10);
+    background: rgba(255,255,255,.03);
+    color: rgba(231,237,245,.90);
+    cursor:pointer;
+    font-weight: 1000;
+  }
+  .chip:hover{ background: rgba(255,255,255,.05); }
+
+  /* Stage */
+  .stage{
+    border-radius: 18px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--line);
+    box-shadow: 0 12px 30px rgba(0,0,0,.25);
+    padding: 18px;
+    position:relative;
+    overflow:hidden;
+    min-height: 560px;
+  }
+
+  /* RIGHT: feed */
+  .right{
+    border-radius: 18px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--line);
+    box-shadow: 0 10px 26px rgba(0,0,0,.25);
+    overflow:hidden;
+  }
+  .right-head{
+    padding: 16px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(0,0,0,.18);
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+  }
+  .right-head .title{ font-weight: 1000; letter-spacing:.3px; font-size: 13px; }
+  .tag{
+    font-size: 11px;
+    color: rgba(231,237,245,.85);
+    border: 1px solid rgba(231,237,245,.14);
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: rgba(255,255,255,.03);
+    white-space:nowrap;
+  }
+  .feed{
+    padding: 14px 14px 16px;
+    display:flex;
+    flex-direction:column;
+    gap: 10px;
+    max-height: 680px;
+    overflow:auto;
+  }
+  .feed::-webkit-scrollbar{ width: 10px; }
+  .feed::-webkit-scrollbar-thumb{
+    background: rgba(231,237,245,.10);
+    border-radius: 99px;
+    border: 2px solid rgba(0,0,0,.2);
+  }
+  .feed-item{
+    display:flex;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(231,237,245,.08);
+  }
+  .feed-icon{
+    width: 36px; height: 36px;
+    border-radius: 12px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(231,237,245,.10);
+    display:grid; place-items:center;
+    font-weight: 1000;
+  }
+  .feed-main{ flex:1; min-width: 0; }
+  .feed-top{
+    display:flex; justify-content:space-between; gap:10px; font-size: 12px;
+  }
+  .feed-top .u{ font-weight: 900; color: rgba(231,237,245,.92); }
+  .feed-top .t{ color: var(--muted2); }
+  .feed-mid{
+    margin-top: 7px;
+    display:flex; justify-content:space-between; gap: 12px;
+    font-size: 12px; color: var(--muted);
+  }
+  .money{ font-weight: 1000; }
+  .pos{ color: rgba(0,231,1,.95); }
+  .neg{ color: rgba(255,59,48,.95); }
+
+  /* ======================
+     MINES
+  ====================== */
+  .mines-grid{
+    display:grid;
+    grid-template-columns: repeat(5, minmax(56px, 74px));
+    gap: 10px;
+    justify-content:start;
+    margin-top: 12px;
+  }
+  .mcell{
+    aspect-ratio:1;
+    border-radius: 14px;
+    background: rgba(0,0,0,.22);
+    border: 1px solid rgba(231,237,245,.10);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 24px;
+    cursor:pointer;
+    transition: transform .12s ease, border-color .12s ease, background .12s ease, opacity .12s ease;
+    user-select:none;
+  }
+  .mcell:hover{ transform: translateY(-2px); border-color: rgba(231,237,245,.18); }
+  .mcell.revealed{ cursor: default; }
+  .mcell.safe{ background: rgba(0,231,1,.18); border-color: rgba(0,231,1,.22); }
+  .mcell.bomb{ background: rgba(255,59,48,.18); border-color: rgba(255,59,48,.22); }
+  .mcell.ghost{ opacity:.55; }
+
+  /* ======================
+     DICE
+  ====================== */
+  .dice-track{
+    position:relative;
+    height: 84px;
+    border-radius: 16px;
+    background: rgba(0,0,0,.22);
+    border: 1px solid rgba(231,237,245,.10);
+    overflow:hidden;
+    margin-top: 12px;
+  }
+  .dice-track .ticks{
+    position:absolute; inset:0;
+    background: linear-gradient(to right, rgba(231,237,245,.10) 1px, transparent 1px);
+    background-size: calc(100% / 10) 100%;
+    opacity: .28;
+  }
+  .win-zone{ position:absolute; inset:0; pointer-events:none; }
+  .win-zone .under, .win-zone .over{
+    position:absolute; top:0; bottom:0;
+    background: rgba(0,231,1,.16);
+  }
+  .marker{
+    position:absolute; top:0; bottom:0;
+    width:2px;
+    background: rgba(231,237,245,.45);
+  }
+  .marker.target{ background: rgba(0,231,1,.85); }
+  .dice-cube{
+    position:absolute;
+    top:50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: rgba(245,247,250,.96);
+    border: 2px solid rgba(255,255,255,.16);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight: 1000;
+    font-size: 18px;
+    color: #0b1220;
+    box-shadow: 0 18px 30px rgba(0,0,0,.35);
+    transition: left 900ms cubic-bezier(.18,.86,.22,1);
+    user-select:none;
+  }
+  .dice-cube.win{ background: rgba(0,231,1,.88); color: #051a0c; }
+  .dice-cube.lose{ background: rgba(255,59,48,.88); color: #2b0b0b; }
+  .resultbox{
+    margin-top: 12px;
+    padding: 13px 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(231,237,245,.10);
+    font-weight: 1000;
+    text-align:center;
+  }
+
+  /* ======================
+     TOWER
+  ====================== */
+  .tower-grid{
+    display:grid;
+    grid-template-columns: repeat(var(--tower-cols, 4), minmax(72px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .tcell{
+    height: 46px;
+    border-radius: 14px;
+    background: rgba(0,0,0,.22);
+    border: 1px solid rgba(231,237,245,.10);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 20px;
+    user-select:none;
+    transition: transform .12s ease, border-color .12s ease, background .12s ease, opacity .12s ease;
+  }
+  .tcell.active{ cursor:pointer; background: rgba(0,0,0,.26); border-color: rgba(231,237,245,.16); }
+  .tcell.active:hover{ transform: translateY(-2px); border-color: rgba(231,237,245,.22); }
+  .tcell.disabled{ opacity:.55; }
+  .tcell.revealed{ cursor: default; }
+  .tcell.safe{ background: rgba(0,231,1,.16); border-color: rgba(0,231,1,.22); }
+  .tcell.bomb{ background: rgba(255,59,48,.16); border-color: rgba(255,59,48,.22); }
+  .tcell.picked.safe{ background: rgba(0,231,1,.88); border-color: rgba(0,231,1,.34); color:#051a0c; }
+  .tcell.picked.bomb{ background: rgba(255,59,48,.88); border-color: rgba(255,59,48,.34); color:#2b0b0b; }
+
+  /* ======================
+     BLACKJACK
+  ====================== */
+  .bj-table{
+    background: rgba(0,0,0,.25);
+    border: 1px solid rgba(231,237,245,.10);
+    border-radius: 16px;
+    padding: 16px;
+    position:relative;
+    overflow:hidden;
+  }
+  .flash{ position:absolute; inset:0; pointer-events:none; opacity:0; }
+  .flash.win{ background: radial-gradient(700px 320px at 50% 20%, rgba(0,231,1,.18), transparent 60%); }
+  .flash.lose{ background: radial-gradient(700px 320px at 50% 20%, rgba(255,59,48,.18), transparent 60%); }
+  .flash.show{ animation: flash 1000ms ease-out forwards; }
+  @keyframes flash{ 0%{opacity:0;} 10%{opacity:1;} 100%{opacity:0;} }
+
+  .hand-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap: 10px;
+    margin: 8px 0 10px;
+  }
+  .hand-title .label{ font-weight: 1000; letter-spacing:.3px; }
+  .hand{
+    display:flex;
+    flex-wrap:wrap;
+    gap: 10px;
+    min-height: 98px;
+    margin-bottom: 12px;
+  }
+  .card{
+    width: 66px; height: 92px;
+    border-radius: 14px;
+    background: rgba(245,247,250,.96);
+    border: 2px solid rgba(255,255,255,.16);
+    box-shadow: 0 14px 26px rgba(0,0,0,.40);
+    color: #0b1220;
+    display:grid; place-items:center;
+    font-weight: 1000;
+    font-size: 18px;
+    position:relative;
+    overflow:hidden;
+    transform-origin: 50% 120%;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    inset:-30% -30% auto -30%;
+    height: 150%;
+    transform: rotate(10deg);
+    background: radial-gradient(circle at 20% 20%, rgba(255,255,255,.65), transparent 55%);
+    opacity: .95;
+  }
+  .card .c{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; line-height:1.0; }
+  .card .s{ font-size: 16px; margin-top: 2px; }
+  .card.red{ color:#b91c1c; }
+  .card.back{
+    background: linear-gradient(135deg, rgba(22,33,49,.95), rgba(17,27,40,.95));
+    border-color: rgba(231,237,245,.14);
+  }
+  .card.back .c{ visibility:hidden; }
+
+  /* Slower dealing */
+  .card.deal{
+    opacity: 0;
+    transform: translate3d(-140px,-45px,0) rotate(-14deg) scale(.92);
+    animation: deal 1100ms cubic-bezier(.18,.86,.22,1) forwards;
+  }
+  @keyframes deal{
+    0%{ opacity: 0; transform: translate3d(-140px,-45px,0) rotate(-14deg) scale(.92); }
+    60%{ opacity: 1; }
+    100%{ opacity: 1; transform: translate3d(0,0,0) rotate(0deg) scale(1); }
+  }
+
+  /* Flip (slower) */
+  .flipwrap{ perspective: 900px; }
+  .flip{ width: 66px; height: 92px; position:relative; transform-style: preserve-3d; }
+  .flip.doFlip{ animation: flip 1400ms cubic-bezier(.18,.86,.22,1) forwards; }
+  @keyframes flip{ 0%{ transform: rotateY(0deg); } 100%{ transform: rotateY(180deg); } }
+  .flip > .face{ position:absolute; inset:0; backface-visibility:hidden; }
+  .flip > .front{ transform: rotateY(180deg); }
+  .flip > .back{ transform: rotateY(0deg); }
+
+  .bj-result{
+    margin-top: 12px;
+    padding: 13px 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(231,237,245,.10);
+    text-align:center;
+    font-weight: 1000;
+  }
+  .bj-result.win{
+    border-color: rgba(0,231,1,.22);
+    box-shadow: 0 0 0 3px rgba(0,231,1,.08) inset;
+  }
+  .bj-result.lose{
+    border-color: rgba(255,59,48,.22);
+    box-shadow: 0 0 0 3px rgba(255,59,48,.08) inset;
+  }
+
+  /* tiny info blocks */
+  .minirow{
+    display:flex; gap: 10px; flex-wrap:wrap; margin-top: 12px;
+  }
+  .mini{
+    flex:1; min-width: 120px;
+    border-radius: 12px;
+    background: rgba(0,0,0,.22);
+    border: 1px solid rgba(231,237,245,.10);
+    padding: 10px 12px;
+    font-size: 12px;
+    color: rgba(231,237,245,.86);
+    display:flex; justify-content:space-between; gap: 10px;
+  }
+  .mini b{ color: rgba(231,237,245,.96); }
+
+  .hidden{ display:none !important; }
+
+  /* Mobile: left menu becomes horizontal row */
+  @media (max-width: 1100px){
+    .left-head{ justify-content:flex-start; }
+    .icon-list{
+      flex-direction:row;
+      justify-content:space-between;
+      gap: 10px;
+      overflow:auto;
+      padding: 12px;
+    }
+    .game-icon{
+      width: 62px; height: 62px; border-radius: 18px;
+      flex: 0 0 auto;
+    }
+    .game-icon .tip{ display:none; }
+  }
+</style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo-badge" title="DonutGamble">
+        <svg class="logo-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <radialGradient id="dough" cx="30%" cy="30%">
+              <stop offset="0" stop-color="#ffe7d6"/>
+              <stop offset="1" stop-color="#f3bda6"/>
+            </radialGradient>
+            <linearGradient id="icing" x1="0" x2="1">
+              <stop offset="0" stop-color="#ff5c7a"/>
+              <stop offset="1" stop-color="#ff85c6"/>
+            </linearGradient>
+          </defs>
+          <circle cx="32" cy="32" r="24" fill="url(#dough)"/>
+          <circle cx="32" cy="32" r="10" fill="rgba(0,0,0,0.26)"/>
+          <circle cx="32" cy="32" r="8" fill="rgba(16,24,35,0.95)"/>
+          <path d="M32 10c12.2 0 22 9.8 22 22s-9.8 22-22 22S10 44.2 10 32 19.8 10 32 10zm0 12c-5.5 0-10 4.5-10 10s4.5 10 10 10 10-4.5 10-10-4.5-10-10-10z"
+                fill="url(#icing)" opacity="0.95"/>
+          <rect x="18" y="22" width="7" height="3" rx="1.5" fill="#00e701" transform="rotate(-20 18 22)"/>
+          <rect x="40" y="20" width="7" height="3" rx="1.5" fill="#3b82f6" transform="rotate(25 40 20)"/>
+          <rect x="44" y="36" width="7" height="3" rx="1.5" fill="#a78bfa" transform="rotate(-20 44 36)"/>
+          <rect x="20" y="40" width="7" height="3" rx="1.5" fill="#f5c542" transform="rotate(18 20 40)"/>
+          <circle cx="24" cy="18" r="5" fill="rgba(255,255,255,0.30)"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1 id="topTitle">🍩 DonutGamble</h1>
+        <div class="sub" id="topSub">Casino</div>
+      </div>
+    </div>
+
+    <div class="rightbar">
+      <div class="pill"><span class="dot"></span><span class="muted">Balance</span> €<span id="globalBalance">500.00</span></div>
+    </div>
+  </div>
+
+  <div class="screen">
+    <div class="casino">
+
+      <!-- LEFT: icon main menu -->
+      <div class="left">
+        <div class="left-head">
+          <div class="title">MENU</div>
+        </div>
+
+        <div class="icon-list">
+          <div class="game-icon active" id="tileMines" onclick="selectGame('mines')" aria-label="Mines">
+            <div class="gi-emoji">💣</div>
+            <div class="tip">Mines</div>
+          </div>
+
+          <div class="game-icon" id="tileDice" onclick="selectGame('dice')" aria-label="Dice">
+            <div class="gi-emoji">🎲</div>
+            <div class="tip">Dice</div>
+          </div>
+
+          <div class="game-icon" id="tileTower" onclick="selectGame('tower')" aria-label="Tower">
+            <!-- nicer tower icon as svg -->
+            <svg class="gi-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <linearGradient id="twG" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0" stop-color="rgba(245,247,250,.95)"/>
+                  <stop offset="1" stop-color="rgba(231,237,245,.35)"/>
+                </linearGradient>
+                <radialGradient id="twGlow" cx="50%" cy="35%">
+                  <stop offset="0" stop-color="rgba(0,231,1,.55)"/>
+                  <stop offset="1" stop-color="rgba(0,231,1,0)"/>
+                </radialGradient>
+              </defs>
+              <rect x="0" y="0" width="64" height="64" rx="18" fill="rgba(0,0,0,0)" />
+              <circle cx="32" cy="18" r="18" fill="url(#twGlow)"/>
+              <path d="M32 10
+                       C36 16, 38 23, 39 30
+                       C40 38, 40 46, 40 52
+                       L24 52
+                       C24 46, 24 38, 25 30
+                       C26 23, 28 16, 32 10 Z"
+                    fill="url(#twG)" opacity=".95"/>
+              <rect x="16" y="50" width="32" height="8" rx="4" fill="rgba(231,237,245,.18)"/>
+              <rect x="20" y="44" width="24" height="6" rx="3" fill="rgba(231,237,245,.20)"/>
+              <circle cx="32" cy="12" r="6" fill="rgba(0,231,1,.92)"/>
+              <path d="M32 8 L33.4 10.6 L36.3 11.1 L33.4 11.6 L32 14.2 L30.6 11.6 L27.7 11.1 L30.6 10.6 Z"
+                    fill="#fff" opacity=".95"/>
+            </svg>
+            <div class="tip">Tower</div>
+          </div>
+
+          <div class="game-icon" id="tileBJ" onclick="selectGame('blackjack')" aria-label="Blackjack">
+            <div class="gi-emoji">🂡</div>
+            <div class="tip">Blackjack</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CENTER: Active game -->
+      <div class="center">
+        <div class="center-head">
+          <div class="title" id="centerTitle">Mines</div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <span class="badge" id="centerBadge">Originals</span>
+            <span class="badge"><span class="g">●</span> UI Demo</span>
+          </div>
+        </div>
+
+        <div class="game-wrap">
+          <!-- Panels for each game -->
+          <div class="panel" id="panelMines">
+            <h3>💣 Mines</h3>
+            <div class="muted">Avaa laattoja. Osu pommiin = häviö. Cashout milloin vain.</div>
+
+            <label>Bet Amount (€)</label>
+            <div class="stepper">
+              <button type="button" data-betminus="minesBet">−</button>
+              <input id="minesBet" type="number" value="10" min="1" step="1" />
+              <button type="button" data-betplus="minesBet">+</button>
+            </div>
+            <div class="chips">
+              <button class="chip" type="button" data-bethalf="minesBet">½</button>
+              <button class="chip" type="button" data-betdouble="minesBet">2x</button>
+              <button class="chip" type="button" data-betmax="minesBet">Max</button>
+            </div>
+
+            <label>Mines</label>
+            <select id="minesCount">
+              <option>3</option><option>5</option><option>10</option>
+              <option>15</option><option>20</option>
+            </select>
+
+            <div class="btnrow">
+              <button class="btn primary" id="minesStartBtn" onclick="startMines()">Place Bet</button>
+              <button class="btn" onclick="cashoutMines()">Cashout</button>
+            </div>
+
+            <div class="minirow">
+              <div class="mini"><span>Multiplier</span><b>x<span id="minesMult">1.00</span></b></div>
+              <div class="mini"><span>Cashout</span><b>€<span id="minesCash">0.00</span></b></div>
+            </div>
+          </div>
+
+          <div class="panel hidden" id="panelDice">
+            <h3>🎲 Dice</h3>
+            <div class="muted">Valitse target ja mode. Vihreä vyöhyke = win.</div>
+
+            <label>Bet Amount (€)</label>
+            <div class="stepper">
+              <button type="button" data-betminus="diceBet">−</button>
+              <input id="diceBet" type="number" value="10" min="1" step="1" />
+              <button type="button" data-betplus="diceBet">+</button>
+            </div>
+            <div class="chips">
+              <button class="chip" type="button" data-bethalf="diceBet">½</button>
+              <button class="chip" type="button" data-betdouble="diceBet">2x</button>
+              <button class="chip" type="button" data-betmax="diceBet">Max</button>
+            </div>
+
+            <label>Mode</label>
+            <select id="diceMode">
+              <option value="under" selected>Roll Under</option>
+              <option value="over">Roll Over</option>
+            </select>
+
+            <label>Target (<span id="diceTargetLabel">50</span>.00)</label>
+            <input id="diceTarget" class="input" type="range" min="2" max="98" value="50" step="1" />
+
+            <div class="minirow">
+              <div class="mini"><span>Win chance</span><b><span id="diceChance">50.00</span>%</b></div>
+              <div class="mini"><span>Multiplier</span><b>x<span id="diceMult">1.84</span></b></div>
+            </div>
+
+            <div class="btnrow">
+              <button class="btn primary" id="diceRollBtn" onclick="rollDice()">Roll</button>
+            </div>
+          </div>
+
+          <div class="panel hidden" id="panelTower">
+            <h3>🗼 Tower</h3>
+            <div class="muted">Valitse laatta jokaiselta tasolta. Cashout milloin vain (tasosta 1 alkaen).</div>
+
+            <label>Bet Amount (€)</label>
+            <div class="stepper">
+              <button type="button" data-betminus="towerBet">−</button>
+              <input id="towerBet" type="number" value="10" min="1" step="1" />
+              <button type="button" data-betplus="towerBet">+</button>
+            </div>
+            <div class="chips">
+              <button class="chip" type="button" data-bethalf="towerBet">½</button>
+              <button class="chip" type="button" data-betdouble="towerBet">2x</button>
+              <button class="chip" type="button" data-betmax="towerBet">Max</button>
+            </div>
+
+            <label>Difficulty</label>
+            <select id="towerDiff">
+              <option value="easy">Easy (3 safe, 1 bomb)</option>
+              <option value="medium">Medium (2 safe, 1 bomb)</option>
+              <option value="hard">Hard (1 safe, 1 bomb)</option>
+            </select>
+
+            <div class="btnrow">
+              <button class="btn primary" id="towerStartBtn" onclick="startTower()">Start</button>
+              <button class="btn" id="towerCashoutBtn" onclick="cashoutTower()" disabled>Cashout</button>
+            </div>
+
+            <div class="minirow">
+              <div class="mini"><span>Level</span><b><span id="towerLevelLabel">0</span></b></div>
+              <div class="mini"><span>Mult</span><b>x<span id="towerMultLabel">1.00</span></b></div>
+              <div class="mini"><span>Cashout</span><b>€<span id="towerCashoutLabel">0.00</span></b></div>
+            </div>
+          </div>
+
+          <div class="panel hidden" id="panelBJ">
+            <h3>🂡 Blackjack</h3>
+            <div class="muted">Dealer stands on 17. Blackjack pays 3:2. <b>Tie = House wins</b>. No split/double.</div>
+
+            <label>Bet Amount (€)</label>
+            <div class="stepper">
+              <button type="button" data-betminus="bjBet">−</button>
+              <input id="bjBet" type="number" value="10" min="1" step="1" />
+              <button type="button" data-betplus="bjBet">+</button>
+            </div>
+            <div class="chips">
+              <button class="chip" type="button" data-bethalf="bjBet">½</button>
+              <button class="chip" type="button" data-betdouble="bjBet">2x</button>
+              <button class="chip" type="button" data-betmax="bjBet">Max</button>
+            </div>
+
+            <div class="btnrow">
+              <button class="btn primary" id="bjDealBtn" onclick="bjDeal()">Deal</button>
+            </div>
+            <div class="btnrow">
+              <button class="btn" id="bjHitBtn" onclick="bjHit()" disabled>Hit</button>
+              <button class="btn" id="bjStandBtn" onclick="bjStand()" disabled>Stand</button>
+            </div>
+
+            <div class="minirow">
+              <div class="mini"><span>Status</span><b id="bjState">Ready</b></div>
+              <div class="mini"><span>Rule</span><b>Tie→House</b></div>
+            </div>
+          </div>
+
+          <!-- Stage area for each game -->
+          <div class="stage">
+            <!-- MINES stage -->
+            <div id="stageMines">
+              <div class="badge">Mines board</div>
+              <div class="mines-grid" id="minesGrid"></div>
+              <div class="resultbox" id="minesMsg">Ready.</div>
+            </div>
+
+            <!-- DICE stage -->
+            <div id="stageDice" class="hidden">
+              <div style="display:flex; gap:10px; justify-content:space-between; flex-wrap:wrap;">
+                <span class="badge">0.00</span>
+                <span class="badge">100.00</span>
+              </div>
+              <div class="dice-track">
+                <div class="win-zone">
+                  <div class="under" id="winUnder"></div>
+                  <div class="over" id="winOver"></div>
+                </div>
+                <div class="ticks"></div>
+                <div class="marker" style="left:50%; opacity:.16;"></div>
+                <div class="marker target" id="diceTargetMarker" style="left:50%;"></div>
+                <div class="dice-cube" id="diceCube" style="left:50%;">—</div>
+              </div>
+              <div class="resultbox" id="diceResult">Ready.</div>
+            </div>
+
+            <!-- TOWER stage -->
+            <div id="stageTower" class="hidden">
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <span class="badge" id="towerColsBadge">Columns: 4</span>
+                <span class="badge" id="towerSafeBadge">Safe per row: 3</span>
+                <span class="badge">House Edge: 5%</span>
+              </div>
+              <div class="tower-grid" id="towerGrid"></div>
+              <div class="resultbox" id="towerResult">Ready.</div>
+            </div>
+
+            <!-- BLACKJACK stage -->
+            <div id="stageBJ" class="hidden">
+              <div class="bj-table" id="bjTable">
+                <div class="flash win" id="flashWin"></div>
+                <div class="flash lose" id="flashLose"></div>
+
+                <div class="hand-title">
+                  <span class="label">Dealer</span>
+                  <span class="badge">Total: <span id="bjDealerTotal">—</span></span>
+                </div>
+                <div class="hand" id="bjDealerHand"></div>
+
+                <div class="hand-title" style="margin-top:10px;">
+                  <span class="label">You</span>
+                  <span class="badge">Total: <span id="bjPlayerTotal">—</span></span>
+                </div>
+                <div class="hand" id="bjPlayerHand"></div>
+
+                <div class="bj-result" id="bjResult">Ready.</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Live feed -->
+      <div class="right">
+        <div class="right-head">
+          <div class="title">Live bets</div>
+          <div class="tag">Simulated (Demo)</div>
+        </div>
+        <div class="feed" id="feed"></div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+window.onload = function(){
+
+/* ========= Shared balance ========= */
+let balance = 500.00;
+const globalBalanceEl = document.getElementById("globalBalance");
+function setBalance(v){
+  balance = Math.max(0, Number(v) || 0);
+  globalBalanceEl.textContent = balance.toFixed(2);
+}
+setBalance(balance);
+
+/* ========= Bet UI helpers ========= */
+function round2(n){ return Math.round(n * 100) / 100; }
+function attachStakeBetUI(inputId){
+  const input = document.getElementById(inputId);
+  if(!input) return;
+
+  function getVal(){ const v = Number(input.value); return Number.isFinite(v) ? v : 0; }
+  function setVal(v){
+    const min = Number(input.min) || 0;
+    const next = Math.max(min, v);
+    input.value = round2(next).toString();
+    input.dispatchEvent(new Event("input", { bubbles:true }));
+  }
+
+  document.querySelectorAll(`[data-betminus="${inputId}"]`).forEach(btn=>{
+    btn.addEventListener("click", ()=> setVal(getVal() - (Number(input.step)||1)));
+  });
+  document.querySelectorAll(`[data-betplus="${inputId}"]`).forEach(btn=>{
+    btn.addEventListener("click", ()=> setVal(getVal() + (Number(input.step)||1)));
+  });
+  document.querySelectorAll(`[data-bethalf="${inputId}"]`).forEach(btn=>{
+    btn.addEventListener("click", ()=> setVal(getVal()/2));
+  });
+  document.querySelectorAll(`[data-betdouble="${inputId}"]`).forEach(btn=>{
+    btn.addEventListener("click", ()=> setVal(getVal()*2));
+  });
+  document.querySelectorAll(`[data-betmax="${inputId}"]`).forEach(btn=>{
+    btn.addEventListener("click", ()=> setVal(balance));
+  });
+
+  input.addEventListener("blur", ()=>{
+    const v = getVal();
+    if(v > balance) setVal(balance);
+    else setVal(v);
+  });
+}
+
+attachStakeBetUI("minesBet");
+attachStakeBetUI("diceBet");
+attachStakeBetUI("towerBet");
+attachStakeBetUI("bjBet");
+
+/* ========= Audio (subtle) ========= */
+let audioCtx;
+function initAudio(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === "suspended") audioCtx.resume();
+}
+function tickSound(freq, dur, gainVal){
+  initAudio();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = "triangle";
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+  gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(); osc.stop(audioCtx.currentTime + dur + 0.02);
+}
+function winSound(){ tickSound(880, 0.14, 0.18); setTimeout(()=>tickSound(1320,0.12,0.16), 70); }
+function loseSound(){ tickSound(220, 0.22, 0.18); }
+function gemSound(){ tickSound(1200, 0.10, 0.12); }
+function bombSound(){ tickSound(180, 0.26, 0.16); }
+
+/* ========= Game selector ========= */
+const centerTitle = document.getElementById("centerTitle");
+const centerBadge = document.getElementById("centerBadge");
+
+const tiles = {
+  mines: document.getElementById("tileMines"),
+  dice: document.getElementById("tileDice"),
+  tower: document.getElementById("tileTower"),
+  blackjack: document.getElementById("tileBJ"),
+};
+const panels = {
+  mines: document.getElementById("panelMines"),
+  dice: document.getElementById("panelDice"),
+  tower: document.getElementById("panelTower"),
+  blackjack: document.getElementById("panelBJ"),
+};
+const stages = {
+  mines: document.getElementById("stageMines"),
+  dice: document.getElementById("stageDice"),
+  tower: document.getElementById("stageTower"),
+  blackjack: document.getElementById("stageBJ"),
+};
+
+window.selectGame = function(name){
+  Object.keys(tiles).forEach(k=> tiles[k].classList.toggle("active", k === name));
+  Object.keys(panels).forEach(k=> panels[k].classList.toggle("hidden", k !== name));
+  Object.keys(stages).forEach(k=> stages[k].classList.toggle("hidden", k !== name));
+
+  if(name === "mines"){ centerTitle.textContent = "Mines"; centerBadge.textContent = "Originals"; }
+  if(name === "dice"){ centerTitle.textContent = "Dice"; centerBadge.textContent = "Originals"; updateDiceUI(); }
+  if(name === "tower"){ centerTitle.textContent = "Tower"; centerBadge.textContent = "Originals"; renderTowerGrid(); }
+  if(name === "blackjack"){ centerTitle.textContent = "Blackjack"; centerBadge.textContent = "Classic 21 • Tie→House"; bjRender(); }
+};
+
+/* =========================
+   MINES
+========================= */
+let minesBet = 0;
+let minesBombs = [];
+let minesRevealed = 0;
+let minesMult = 1;
+let minesActive = false;
+
+const minesBetInput = document.getElementById("minesBet");
+const minesCountSel = document.getElementById("minesCount");
+const minesGridEl = document.getElementById("minesGrid");
+const minesStartBtn = document.getElementById("minesStartBtn");
+const minesMultEl = document.getElementById("minesMult");
+const minesCashEl = document.getElementById("minesCash");
+const minesMsg = document.getElementById("minesMsg");
+
+(function buildMinesGrid(){
+  minesGridEl.innerHTML = "";
+  for(let i=0;i<25;i++){
+    const t = document.createElement("div");
+    t.className = "mcell";
+    t.onclick = ()=>clickMinesTile(t,i);
+    minesGridEl.appendChild(t);
+  }
+})();
+
+function combination(n,k){
+  let result = 1;
+  for(let i=1;i<=k;i++) result = result * (n - i + 1) / i;
+  return result;
+}
+function updateMinesMult(){
+  const m = minesBombs.length;
+  const k = minesRevealed;
+  const fair = combination(25, k) / combination(25 - m, k);
+  const houseEdge = 0.08;
+  minesMult = fair * (1 - houseEdge);
+  minesMultEl.textContent = minesMult.toFixed(2);
+  minesCashEl.textContent = (minesBet * minesMult).toFixed(2);
+}
+function revealAllMinesGhost(){
+  const tiles = minesGridEl.querySelectorAll(".mcell");
+  tiles.forEach((t,i)=>{
+    if(!t.classList.contains("revealed")){
+      t.classList.add("revealed");
+      if(minesBombs.includes(i)){ t.classList.add("bomb","ghost"); t.textContent="💣"; }
+      else { t.classList.add("safe","ghost"); t.textContent="💎"; }
+    }
+  });
+}
+window.startMines = function(){
+  minesMult = 1; minesMultEl.textContent = "1.00";
+  minesCashEl.textContent = "0.00";
+  minesMsg.textContent = "Started. Pick tiles.";
+
+  minesBet = Number(minesBetInput.value);
+  if(!Number.isFinite(minesBet) || minesBet <= 0) return;
+  if(minesBet > balance) return;
+
+  setBalance(balance - minesBet);
+  minesBombs = [];
+  minesRevealed = 0;
+  minesActive = true;
+
+  minesGridEl.querySelectorAll(".mcell").forEach(t=>{
+    t.className = "mcell";
+    t.textContent = "";
+  });
+
+  const m = Number(minesCountSel.value);
+  while(minesBombs.length < m){
+    const r = Math.floor(Math.random()*25);
+    if(!minesBombs.includes(r)) minesBombs.push(r);
+  }
+
+  updateMinesMult();
+  minesStartBtn.disabled = true;
+};
+
+function clickMinesTile(tile,i){
+  if(!minesActive || tile.classList.contains("revealed")) return;
+  tile.classList.add("revealed");
+
+  if(minesBombs.includes(i)){
+    tile.classList.add("bomb");
+    tile.textContent="💣";
+    bombSound();
+    minesMsg.textContent = `LOSE. Hit a bomb.`;
+    revealAllMinesGhost();
+    minesActive = false;
+    minesStartBtn.disabled = false;
+    return;
+  }
+
+  tile.classList.add("safe");
+  tile.textContent="💎";
+  gemSound();
+  minesRevealed++;
+  updateMinesMult();
+  minesMsg.textContent = `Safe! Mult x${minesMult.toFixed(2)}.`;
+}
+window.cashoutMines = function(){
+  if(!minesActive) return;
+  const payout = minesBet * minesMult;
+  setBalance(balance + payout);
+  minesMsg.textContent = `CASHOUT! +€${(payout - minesBet).toFixed(2)} profit`;
+  revealAllMinesGhost();
+  minesActive = false;
+  minesStartBtn.disabled = false;
+};
+
+/* =========================
+   DICE
+========================= */
+const diceBetEl = document.getElementById("diceBet");
+const diceTargetEl = document.getElementById("diceTarget");
+const diceTargetLabelEl = document.getElementById("diceTargetLabel");
+const diceChanceEl = document.getElementById("diceChance");
+const diceMultEl = document.getElementById("diceMult");
+const diceResultEl = document.getElementById("diceResult");
+const diceTargetMarker = document.getElementById("diceTargetMarker");
+const diceCube = document.getElementById("diceCube");
+const diceRollBtn = document.getElementById("diceRollBtn");
+const diceModeEl = document.getElementById("diceMode");
+const winUnderEl = document.getElementById("winUnder");
+const winOverEl = document.getElementById("winOver");
+
+const diceHouseEdge = 0.01;
+let diceRolling = false;
+
+function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+function getDiceMode(){ return diceModeEl.value === "over" ? "over" : "under"; }
+function setMarkerToTarget(){
+  const target = Number(diceTargetEl.value);
+  diceTargetMarker.style.left = target + "%";
+}
+function updateWinZone(){
+  const target = Number(diceTargetEl.value);
+  const mode = getDiceMode();
+  if(mode === "under"){
+    winUnderEl.style.left = "0%";
+    winUnderEl.style.width = target + "%";
+    winUnderEl.style.display = "block";
+    winOverEl.style.display = "none";
+  }else{
+    winOverEl.style.left = target + "%";
+    winOverEl.style.width = (100 - target) + "%";
+    winOverEl.style.display = "block";
+    winUnderEl.style.display = "none";
+  }
+}
+function updateDiceUI(){
+  const target = Number(diceTargetEl.value);
+  const mode = getDiceMode();
+
+  diceTargetLabelEl.textContent = target.toString();
+
+  const chance = mode === "under" ? target : (100 - target);
+  diceChanceEl.textContent = chance.toFixed(2);
+
+  const mult = (100 / chance) * (1 - diceHouseEdge);
+  diceMultEl.textContent = mult.toFixed(2);
+
+  setMarkerToTarget();
+  updateWinZone();
+}
+diceTargetEl.addEventListener("input", updateDiceUI);
+diceModeEl.addEventListener("change", updateDiceUI);
+updateDiceUI();
+
+function moveCubeTo(roll){ diceCube.style.left = clamp(roll, 0, 100) + "%"; }
+function setCubeState(state){
+  diceCube.classList.remove("win","lose");
+  if(state) diceCube.classList.add(state);
+}
+function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+window.rollDice = async function(){
+  if(diceRolling) return;
+
+  const bet = Number(diceBetEl.value);
+  if(!Number.isFinite(bet) || bet <= 0) return;
+  if(bet > balance) return;
+
+  const target = Number(diceTargetEl.value);
+  const mode = getDiceMode();
+
+  const chance = mode === "under" ? target : (100 - target);
+  const mult = (100 / chance) * (1 - diceHouseEdge);
+
+  diceRolling = true;
+  diceRollBtn.disabled = true;
+  setBalance(balance - bet);
+
+  setCubeState("");
+  diceCube.textContent = "—";
+  moveCubeTo(50);
+
+  await wait(220);
+
+  const roll = Math.random() * 100;
+  const win = (mode === "under") ? (roll < target) : (roll > target);
+
+  diceCube.textContent = roll.toFixed(2);
+  moveCubeTo(roll);
+
+  await wait(950);
+  setCubeState(win ? "win" : "lose");
+
+  if(win){
+    winSound();
+    const payout = bet * mult;
+    setBalance(balance + payout);
+    diceResultEl.textContent = `WIN! Roll ${roll.toFixed(2)} | +€${(payout - bet).toFixed(2)} profit`;
+  }else{
+    loseSound();
+    diceResultEl.textContent = `LOSE. Roll ${roll.toFixed(2)} | -€${bet.toFixed(2)}`;
+  }
+
+  diceRolling = false;
+  diceRollBtn.disabled = false;
+};
+
+/* =========================
+   TOWER
+========================= */
+const towerBetEl = document.getElementById("towerBet");
+const towerDiffEl = document.getElementById("towerDiff");
+const towerStartBtn = document.getElementById("towerStartBtn");
+const towerCashoutBtn = document.getElementById("towerCashoutBtn");
+const towerGridEl = document.getElementById("towerGrid");
+const towerResultEl = document.getElementById("towerResult");
+
+const towerLevelLabel = document.getElementById("towerLevelLabel");
+const towerMultLabel = document.getElementById("towerMultLabel");
+const towerCashoutLabel = document.getElementById("towerCashoutLabel");
+const towerSafeBadge = document.getElementById("towerSafeBadge");
+const towerColsBadge = document.getElementById("towerColsBadge");
+
+const TOWER_LEVELS = 8;
+const TOWER_HOUSE_EDGE = 0.05;
+
+let towerCols = 4;
+let towerActive = false;
+let towerBet = 0;
+let towerLevel = 0;
+let towerSafePerRow = 3;
+let towerBombsPerRow = 1;
+let towerRows = [];
+let towerMult = 1;
+
+function getTowerConfig(){
+  const d = towerDiffEl.value;
+  if(d === "hard")   return { cols: 2, safe: 1, bombs: 1, name: "Hard" };
+  if(d === "medium") return { cols: 3, safe: 2, bombs: 1, name: "Medium" };
+  return { cols: 4, safe: 3, bombs: 1, name: "Easy" };
+}
+function buildTowerRows(){
+  towerRows = [];
+  for(let lvl=0; lvl<TOWER_LEVELS; lvl++){
+    const bombs = [];
+    while(bombs.length < towerBombsPerRow){
+      const r = Math.floor(Math.random() * towerCols);
+      if(!bombs.includes(r)) bombs.push(r);
+    }
+    towerRows.push({ bombs });
+  }
+}
+function towerChancePerPick(){ return towerSafePerRow / towerCols; }
+function updateTowerMathUI(){
+  towerLevelLabel.textContent = String(towerLevel);
+  const p = towerChancePerPick();
+  const fair = (towerLevel <= 0) ? 1 : (1 / Math.pow(p, towerLevel));
+  towerMult = fair * (1 - TOWER_HOUSE_EDGE);
+  towerMultLabel.textContent = towerMult.toFixed(2);
+  towerCashoutLabel.textContent = (towerBet * towerMult).toFixed(2);
+}
+function renderTowerGrid(){
+  towerGridEl.innerHTML = "";
+  towerGridEl.style.setProperty("--tower-cols", String(towerCols));
+  for(let lvl = TOWER_LEVELS - 1; lvl >= 0; lvl--){
+    for(let c=0; c<towerCols; c++){
+      const cell = document.createElement("div");
+      cell.className = "tcell disabled";
+      cell.dataset.lvl = String(lvl);
+      cell.dataset.col = String(c);
+      cell.textContent = " ";
+      cell.onclick = () => onTowerPick(lvl, c, cell);
+      towerGridEl.appendChild(cell);
+    }
+  }
+  refreshTowerActiveRow();
+}
+function refreshTowerActiveRow(){
+  const cells = towerGridEl.querySelectorAll(".tcell");
+  cells.forEach(cell=>{
+    const lvl = Number(cell.dataset.lvl);
+    cell.classList.remove("active");
+    cell.classList.add("disabled");
+    if(!towerActive) return;
+    if(lvl === towerLevel && !cell.classList.contains("picked")){
+      cell.classList.add("active");
+      cell.classList.remove("disabled");
+    }
+  });
+}
+function revealAllTower(){
+  for(let lvl=0; lvl<TOWER_LEVELS; lvl++){
+    const rowInfo = towerRows[lvl];
+    const cells = towerGridEl.querySelectorAll(`.tcell[data-lvl="${lvl}"]`);
+    cells.forEach(cell=>{
+      if(cell.classList.contains("revealed")) return;
+      cell.classList.add("revealed");
+      const col = Number(cell.dataset.col);
+      const isBomb = rowInfo.bombs.includes(col);
+      cell.classList.add(isBomb ? "bomb" : "safe");
+      cell.textContent = isBomb ? "💣" : "💎";
+    });
+  }
+}
+window.startTower = function(){
+  const bet = Number(towerBetEl.value);
+  if(!Number.isFinite(bet) || bet <= 0) return;
+  if(bet > balance) return;
+
+  const cfg = getTowerConfig();
+  towerCols = cfg.cols;
+  towerSafePerRow = cfg.safe;
+  towerBombsPerRow = cfg.bombs;
+
+  towerSafeBadge.textContent = `Safe per row: ${towerSafePerRow}`;
+  towerColsBadge.textContent = `Columns: ${towerCols}`;
+
+  towerBet = bet;
+  setBalance(balance - towerBet);
+
+  towerActive = true;
+  towerLevel = 0;
+
+  buildTowerRows();
+  renderTowerGrid();
+  updateTowerMathUI();
+
+  towerCashoutBtn.disabled = true;
+  towerStartBtn.disabled = true;
+  towerResultEl.textContent = `Started (${cfg.name}). Pick bottom row.`;
+};
+function onTowerPick(lvl, col, cell){
+  if(!towerActive) return;
+  if(lvl !== towerLevel) return;
+  if(!cell.classList.contains("active")) return;
+  if(cell.classList.contains("picked")) return;
+
+  const isBomb = towerRows[lvl].bombs.includes(col);
+
+  cell.classList.add("picked","revealed");
+  cell.classList.add(isBomb ? "bomb" : "safe");
+  cell.textContent = isBomb ? "💣" : "💎";
+
+  if(isBomb){
+    bombSound();
+    revealAllTower();
+    towerActive = false;
+    towerStartBtn.disabled = false;
+    towerCashoutBtn.disabled = true;
+    towerResultEl.textContent = `LOSE. Bomb on level ${lvl + 1}.`;
+    refreshTowerActiveRow();
+    return;
+  }
+
+  gemSound();
+  towerLevel++;
+  updateTowerMathUI();
+  towerCashoutBtn.disabled = false;
+
+  if(towerLevel >= TOWER_LEVELS){
+    const payout = towerBet * towerMult;
+    setBalance(balance + payout);
+    revealAllTower();
+    towerActive = false;
+    towerStartBtn.disabled = false;
+    towerCashoutBtn.disabled = true;
+    towerResultEl.textContent = `MAX WIN! +€${(payout - towerBet).toFixed(2)} profit`;
+    refreshTowerActiveRow();
+    return;
+  }
+
+  towerResultEl.textContent = `Nice! x${towerMult.toFixed(2)}. Next level.`;
+  refreshTowerActiveRow();
+}
+window.cashoutTower = function(){
+  if(!towerActive) return;
+  if(towerLevel <= 0) return;
+
+  const payout = towerBet * towerMult;
+  setBalance(balance + payout);
+  revealAllTower();
+
+  towerActive = false;
+  towerStartBtn.disabled = false;
+  towerCashoutBtn.disabled = true;
+  towerResultEl.textContent = `CASHOUT! +€${(payout - towerBet).toFixed(2)} profit`;
+  refreshTowerActiveRow();
+};
+towerDiffEl.addEventListener("change", ()=>{
+  const cfg = getTowerConfig();
+  towerSafeBadge.textContent = `Safe per row: ${cfg.safe}`;
+  towerColsBadge.textContent = `Columns: ${cfg.cols}`;
+  if(!towerActive){
+    towerCols = cfg.cols;
+    towerSafePerRow = cfg.safe;
+    towerBombsPerRow = cfg.bombs;
+    renderTowerGrid();
+  }
+});
+
+/* =========================
+   BLACKJACK (slow animations + tie->house)
+========================= */
+const bjBetEl = document.getElementById("bjBet");
+const bjDealBtn = document.getElementById("bjDealBtn");
+const bjHitBtn = document.getElementById("bjHitBtn");
+const bjStandBtn = document.getElementById("bjStandBtn");
+const bjStateText = document.getElementById("bjState");
+
+const bjDealerHandEl = document.getElementById("bjDealerHand");
+const bjPlayerHandEl = document.getElementById("bjPlayerHand");
+const bjDealerTotalEl = document.getElementById("bjDealerTotal");
+const bjPlayerTotalEl = document.getElementById("bjPlayerTotal");
+const bjResultEl = document.getElementById("bjResult");
+const flashWin = document.getElementById("flashWin");
+const flashLose = document.getElementById("flashLose");
+
+let bjDeck = [];
+let bjPlayer = [];
+let bjDealer = [];
+let bjBet = 0;
+
+let bjInRound = false;
+let bjRevealDealer = false;
+let bjBusy = false;
+
+function cardNode(card, hidden=false, dealAnim=true){
+  const el = document.createElement("div");
+  el.className = "card" + (dealAnim ? " deal" : "");
+  if(hidden){
+    el.classList.add("back");
+    el.innerHTML = `<div class="c">?</div>`;
+    return el;
+  }
+  const isRed = (card.s === "♥" || card.s === "♦");
+  if(isRed) el.classList.add("red");
+  el.innerHTML = `<div class="c">${card.r}<div class="s">${card.s}</div></div>`;
+  return el;
+}
+function setResultStyle(kind){
+  bjResultEl.classList.remove("win","lose");
+  if(kind === "win") bjResultEl.classList.add("win");
+  if(kind === "lose") bjResultEl.classList.add("lose");
+}
+function stageFlash(kind){
+  flashWin.classList.remove("show");
+  flashLose.classList.remove("show");
+  if(kind === "win") flashWin.classList.add("show");
+  if(kind === "lose") flashLose.classList.add("show");
+}
+function bjNewDeck(){
+  const suits = ["♠","♥","♦","♣"];
+  const ranks = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+  const deck = [];
+  for(const s of suits) for(const r of ranks) deck.push({ r, s });
+  for(let i = deck.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck;
+}
+function bjCardValueRank(r){
+  if(r === "A") return 11;
+  if(r === "K" || r === "Q" || r === "J") return 10;
+  return Number(r);
+}
+function bjHandTotal(hand){
+  let total = 0, aces = 0;
+  for(const c of hand){
+    total += bjCardValueRank(c.r);
+    if(c.r === "A") aces++;
+  }
+  while(total > 21 && aces > 0){ total -= 10; aces--; }
+  return total;
+}
+function bjIsBlackjack(hand){ return hand.length === 2 && bjHandTotal(hand) === 21; }
+function bjDraw(){ if(bjDeck.length < 10) bjDeck = bjNewDeck(); return bjDeck.pop(); }
+function bjSetButtons(deal, hit, stand){
+  bjDealBtn.disabled = !deal;
+  bjHitBtn.disabled = !hit;
+  bjStandBtn.disabled = !stand;
+}
+async function dealTo(targetEl, card, { hidden=false, delay=0 } = {}){
+  await wait(delay);
+  tickSound(520, 0.08, 0.10);
+  const el = cardNode(card, hidden, true);
+  targetEl.appendChild(el);
+  await wait(650);
+}
+async function flipDealerSecondCard(){
+  const second = bjDealerHandEl.children[1];
+  if(!second) return;
+
+  const realCard = bjDealer[1];
+
+  const wrap = document.createElement("div");
+  wrap.className = "flipwrap";
+
+  const flip = document.createElement("div");
+  flip.className = "flip";
+
+  const backFace = document.createElement("div");
+  backFace.className = "face back";
+  backFace.appendChild(cardNode(realCard, true, false));
+
+  const frontFace = document.createElement("div");
+  frontFace.className = "face front";
+  frontFace.appendChild(cardNode(realCard, false, false));
+
+  flip.appendChild(backFace);
+  flip.appendChild(frontFace);
+  wrap.appendChild(flip);
+
+  second.replaceWith(wrap);
+
+  await wait(260);
+  tickSound(420, 0.10, 0.10);
+  flip.classList.add("doFlip");
+  await wait(1400);
+}
+function bjRender(){
+  const pTotal = bjHandTotal(bjPlayer);
+  const dTotal = bjRevealDealer ? bjHandTotal(bjDealer) : "—";
+  bjPlayerTotalEl.textContent = String(pTotal);
+  bjDealerTotalEl.textContent = String(dTotal);
+
+  bjDealerHandEl.innerHTML = "";
+  bjDealer.forEach((c, idx)=>{
+    const hide = bjInRound && !bjRevealDealer && idx === 1;
+    bjDealerHandEl.appendChild(cardNode(c, hide, false));
+  });
+
+  bjPlayerHandEl.innerHTML = "";
+  bjPlayer.forEach(c=> bjPlayerHandEl.appendChild(cardNode(c, false, false)));
+}
+function bjPayout(mult){
+  const payout = bjBet * mult;
+  setBalance(balance + payout);
+  const profit = payout - bjBet;
+  const sign = profit >= 0 ? "+" : "";
+  return `${sign}€${profit.toFixed(2)} profit`;
+}
+/* tie => house wins */
+function resolveCompare(p, d){
+  if(d > 21) return "player";
+  if(p > 21) return "dealer";
+  if(p > d) return "player";
+  return "dealer"; // includes tie
+}
+function bjEnd(msg, kind){
+  bjInRound = false;
+  bjRevealDealer = true;
+  bjSetButtons(true, false, false);
+  bjStateText.textContent = "Ready";
+  bjResultEl.textContent = msg;
+
+  setResultStyle(kind);
+  if(kind === "win"){ stageFlash("win"); winSound(); }
+  if(kind === "lose"){ stageFlash("lose"); loseSound(); }
+
+  bjRender();
+}
+
+window.bjDeal = async function(){
+  if(bjInRound || bjBusy) return;
+
+  const bet = Number(bjBetEl.value);
+  if(!Number.isFinite(bet) || bet <= 0) return;
+  if(bet > balance) return;
+
+  bjBusy = true;
+  setResultStyle("");
+  bjResultEl.textContent = "Dealing…";
+
+  bjBet = bet;
+  setBalance(balance - bjBet);
+
+  bjDeck = bjNewDeck();
+  bjPlayer = [];
+  bjDealer = [];
+  bjInRound = true;
+  bjRevealDealer = false;
+
+  bjStateText.textContent = "Dealing…";
+  bjSetButtons(false, false, false);
+
+  bjDealerHandEl.innerHTML = "";
+  bjPlayerHandEl.innerHTML = "";
+  bjDealerTotalEl.textContent = "—";
+  bjPlayerTotalEl.textContent = "—";
+
+  const p1 = bjDraw(); bjPlayer.push(p1);
+  await dealTo(bjPlayerHandEl, p1, { delay: 260 });
+
+  const d1 = bjDraw(); bjDealer.push(d1);
+  await dealTo(bjDealerHandEl, d1, { delay: 280 });
+
+  const p2 = bjDraw(); bjPlayer.push(p2);
+  await dealTo(bjPlayerHandEl, p2, { delay: 300 });
+
+  const d2 = bjDraw(); bjDealer.push(d2);
+  await dealTo(bjDealerHandEl, d2, { hidden:true, delay: 320 });
+
+  bjPlayerTotalEl.textContent = String(bjHandTotal(bjPlayer));
+  bjDealerTotalEl.textContent = "—";
+
+  const pBJ = bjIsBlackjack(bjPlayer);
+  const dBJ = bjIsBlackjack(bjDealer);
+
+  if(pBJ || dBJ){
+    bjRevealDealer = true;
+    await flipDealerSecondCard();
+    bjDealerTotalEl.textContent = String(bjHandTotal(bjDealer));
+
+    if(pBJ && dBJ){
+      bjEnd(`Tie blackjack → House wins. ${bjPayout(0)}`, "lose");
+      bjBusy = false;
+      return;
+    }
+    if(pBJ){
+      bjEnd(`BLACKJACK! ${bjPayout(2.5)}`, "win");
+      bjBusy = false;
+      return;
+    }
+    bjEnd(`Dealer blackjack. ${bjPayout(0)}`, "lose");
+    bjBusy = false;
+    return;
+  }
+
+  bjStateText.textContent = "In round";
+  bjResultEl.textContent = "Your move.";
+  bjSetButtons(false, true, true);
+  bjBusy = false;
+};
+
+window.bjHit = async function(){
+  if(!bjInRound || bjBusy) return;
+  bjBusy = true;
+
+  const c = bjDraw();
+  bjPlayer.push(c);
+  await dealTo(bjPlayerHandEl, c, { delay: 260 });
+
+  const total = bjHandTotal(bjPlayer);
+  bjPlayerTotalEl.textContent = String(total);
+
+  if(total > 21){
+    bjRevealDealer = true;
+    await flipDealerSecondCard();
+    bjDealerTotalEl.textContent = String(bjHandTotal(bjDealer));
+    bjEnd(`Bust (${total}). ${bjPayout(0)}`, "lose");
+    bjBusy = false;
+    return;
+  }
+
+  gemSound();
+  bjResultEl.textContent = "Hit or Stand.";
+  bjBusy = false;
+};
+
+window.bjStand = async function(){
+  if(!bjInRound || bjBusy) return;
+  bjBusy = true;
+
+  bjStateText.textContent = "Dealer…";
+  bjSetButtons(false, false, false);
+
+  bjRevealDealer = true;
+  await flipDealerSecondCard();
+  bjDealerTotalEl.textContent = String(bjHandTotal(bjDealer));
+
+  while(bjHandTotal(bjDealer) < 17){
+    await wait(360);
+    const c = bjDraw();
+    bjDealer.push(c);
+    await dealTo(bjDealerHandEl, c, { delay: 280 });
+    bjDealerTotalEl.textContent = String(bjHandTotal(bjDealer));
+  }
+
+  const p = bjHandTotal(bjPlayer);
+  const d = bjHandTotal(bjDealer);
+
+  const winner = resolveCompare(p, d);
+  if(winner === "player"){
+    bjEnd(`You win (${p} vs ${d}). ${bjPayout(2)}`, "win");
+    bjBusy = false;
+    return;
+  }
+  bjEnd(`House wins (${p} vs ${d}). ${bjPayout(0)}`, "lose");
+  bjBusy = false;
+};
+
+/* ========= Simulated feed (clearly labeled) ========= */
+const feedEl = document.getElementById("feed");
+const games = [
+  { k:"BJ", name:"Blackjack" },
+  { k:"MN", name:"Mines" },
+  { k:"DC", name:"Dice" },
+  { k:"TW", name:"Tower" },
+];
+const namePool = [
+  "Aaro","Oskari","Eetu","Joonas","Mikael","Roni","Elias","Otto",
+  "Emma","Aino","Sofia","Iida","Ella","Veera","Helmi","Sara",
+  "Noah","Leo","Luca","Milo","Nora","Lina","Ava","Mia"
+];
+
+function nowTime(){
+  const d = new Date();
+  const hh = String(d.getHours()).padStart(2,"0");
+  const mm = String(d.getMinutes()).padStart(2,"0");
+  return `${hh}:${mm}`;
+}
+function rnd(min,max){ return Math.random()*(max-min)+min; }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function money(n){ return n.toFixed(2); }
+
+function sampleBet(){
+  const r = Math.random();
+  if(r < 0.70) return round2(rnd(0.20, 8.00));
+  if(r < 0.95) return round2(rnd(8.00, 35.00));
+  return round2(rnd(35.00, 180.00));
+}
+function sampleOutcome(gameKey, bet){
+  const roll = Math.random();
+  let profit = 0;
+
+  if(gameKey === "BJ"){
+    if(roll < 0.46){
+      const bj = Math.random() < 0.06;
+      profit = bj ? bet * 1.5 : bet * 1.0;
+    }else{
+      profit = -bet;
+    }
+  }else if(gameKey === "MN"){
+    if(roll < 0.56) profit = -bet;
+    else if(roll < 0.92) profit = bet * rnd(0.15, 1.8);
+    else profit = bet * rnd(2.0, 6.0);
+  }else if(gameKey === "DC"){
+    if(roll < 0.50) profit = -bet;
+    else profit = bet * rnd(0.05, 1.4);
+  }else{
+    if(roll < 0.62) profit = -bet;
+    else if(roll < 0.93) profit = bet * rnd(0.25, 2.2);
+    else profit = bet * rnd(2.5, 8.0);
+  }
+  return round2(profit);
+}
+function iconFor(key){
+  if(key==="BJ") return "🂡";
+  if(key==="MN") return "💣";
+  if(key==="DC") return "🎲";
+  return "🗼";
+}
+function addFeedItem(){
+  const g = pick(games);
+  const bet = sampleBet();
+  const profit = sampleOutcome(g.k, bet);
+  const user = pick(namePool) + String(Math.floor(rnd(10,99)));
+
+  const item = document.createElement("div");
+  item.className = "feed-item";
+
+  const icon = document.createElement("div");
+  icon.className = "feed-icon";
+  icon.textContent = iconFor(g.k);
+
+  const main = document.createElement("div");
+  main.className = "feed-main";
+
+  const top = document.createElement("div");
+  top.className = "feed-top";
+  top.innerHTML = `<div class="u">${user}</div><div class="t">${nowTime()}</div>`;
+
+  const mid = document.createElement("div");
+  mid.className = "feed-mid";
+  const cls = profit >= 0 ? "pos" : "neg";
+  const sign = profit >= 0 ? "+" : "";
+  mid.innerHTML = `
+    <div>${g.name} • Bet <span class="money">€${money(bet)}</span></div>
+    <div class="money ${cls}">${sign}€${money(Math.abs(profit))}</div>
+  `;
+
+  main.appendChild(top);
+  main.appendChild(mid);
+
+  item.appendChild(icon);
+  item.appendChild(main);
+
+  feedEl.prepend(item);
+  while(feedEl.children.length > 18) feedEl.removeChild(feedEl.lastChild);
+}
+for(let i=0;i<10;i++) addFeedItem();
+setInterval(addFeedItem, 2200);
+
+/* ========= INIT ========= */
+renderTowerGrid();
+selectGame("mines"); // default
+
+};
+</script>
+</body>
+</html>
